@@ -1,7 +1,5 @@
 # Srun4KAutoLogin_Openwrt
 
-[toc]
-
 ## 简介
 
 适用于深澜4K认证系统的openwrt设备自动登录程序，基于shell和C语言。北航校园网环境测试通过。
@@ -67,8 +65,11 @@ portalURL="http://10.200.21.4/cgi-bin/srun_portal"
 ```
 
 username - 校园网认证用户名
+
 passwordPlain - 明文密码
+
 executablePath - 指向请求体生成可执行文件的路径
+
 challengeURL,portalURL - 不同学校的URL不同，可参考加密逻辑参考网页中的做法设置
 
 #### 安装依赖包
