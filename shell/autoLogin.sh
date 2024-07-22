@@ -62,7 +62,7 @@ portalLogin(){
     local URL=$portalURL
     getChallenge
     if [ $challenge != "" ]; then
-	    echo "valid token." >>/tmp/login.log
+	    echo "valid token. "$challenge >>/tmp/login.log
     else
 	    echo "invalid token" >>/tmp/login.log
 	    return 2
@@ -98,7 +98,12 @@ checkConnectivity(){
     echo "check for connectivity shows:"$checker >> /tmp/login.log
     if [ "$checker" == "302" ]; then  # status code 302 - 'found', connectivity is good
         echo "online at"$timeOutput >> /tmp/login.log
-        sleep 300                     # if online, only check every 5 min
+        if [ -e "/tmp/heartBeatPackage.tmp" ]; then
+            $(rm -f "/tmp/heartBeatPackage.tmp")
+        fi
+        sleep 5
+        local tmp=$(curl -s 220.181.38.149 -o "/tmp/heartBeatPackage.tmp" --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.33")
+        sleep 295                     # if online, only check every 5 min
     else
         echo "User is offline, trying to reconnect at "$timeOutput >> /tmp/login.log
         portalLogin
