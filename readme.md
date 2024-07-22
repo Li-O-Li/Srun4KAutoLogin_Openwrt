@@ -8,9 +8,9 @@
 
 ## 环境需求
 
-1.**编译环境**
+1. **编译环境**
 任意可运行**openwrt SDK**的设备（后文简称编译设备）。在WSL Ubuntu 22.04.3 LTS系统测试通过。
-2.**运行环境**
+2. **运行环境**
 运行脚本进行自动上网的设备（后文简称运行设备）。在以下设备测试通过。
 
 条目 | 数值
@@ -80,6 +80,7 @@ challengeURL,portalURL - 不同学校的URL不同，可参考加密逻辑参考�
 opkg update
 opkg install coreutils-date
 opkg install ubus
+opkg install curl
 opkg install getrandom
 ```
 
@@ -93,8 +94,8 @@ opkg install getrandom
 ## 更新记录
 
 V1.0 功能实现
+V1.1 心跳包实现
 
 ## To Do
 
-1.发送心跳包防止掉线
-2.优化安装方式
+1.优化安装方式
