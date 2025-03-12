@@ -1,6 +1,17 @@
 #!/bin/ash
 name="buaaSrunCertificate"
 
+# advanced settings
+# typically, you do not need to modify the following settings
+# if you want to modify, please make sure you know what you are doing
+action=login
+ac_id=1
+n=200
+type=1
+os='Windows 10'
+name=Windows
+double_stack=0
+
 # init Settings(please modify)
 username=testuser                                       # user name
 passwordPlain=testpwd                                   # plain password
@@ -71,7 +82,7 @@ portalLogin(){
     timeMilli=$(date +%s%3N)
     timeOutput=$(date "+%Y-%m-%d %H:%M:%S")
     # generate request body using extern C-language-based executable
-    local requestBody=$($executablePath $callback $username $passwordPlain $ip $timeMilli $challenge)
+    local requestBody=$($executablePath $callback $username $passwordPlain $ip $timeMilli $challenge $action $ac_id $n $type $os $name $double_stack)
     # send login request to server
     local server_response=$(wget -qO- --no-check-certificate --user-agent=$(printf $user_agent) $URL"?"$requestBody)
     # analyze result

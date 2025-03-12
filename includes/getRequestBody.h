@@ -16,5 +16,5 @@ typedef struct requestBody{
     char *value[14];
 } requestBody;
 
-char* getRequestBody(char *callback_data, char* s_usrname, char* pwdPlain, char* ipAddr, char* timeStamp, char*token);
+char* getRequestBody(char *callback_data, char* s_usrname, char* pwdPlain, char* ipAddr, char* timeStamp, char*token, char* iaction, char* iac_id, char* in, char* itype, char* ios, char* iname, char* idouble_stack);
 #endif

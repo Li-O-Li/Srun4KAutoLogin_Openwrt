@@ -1,21 +1,21 @@
 #include "../includes/getRequestBody.h"
 // callback, action, username, password, ac_id, ip, chksum, info, n, type, os, name, double_stack, _
-char* getRequestBody(char *callback_data, char* s_usrname, char* pwdPlain, char* ipAddr, char* timeStamp, char*token){
+char* getRequestBody(char *callback_data, char* s_usrname, char* pwdPlain, char* ipAddr, char* timeStamp, char*token, char* iaction, char* iac_id, char* in, char* itype, char* ios, char* iname, char* idouble_stack){
     requestBody r;
     // direct assign
     char *fieldVal[] = {"callback", "action", "username", "password", "ac_id", "ip", "chksum", "info", "n", "type", "os", "name", "double_stack", "_"};
     for(int itr=0;itr<14;itr++)
         r.field[itr] = fieldVal[itr]; 
     r.value[callback] = callback_data;
-    r.value[action] = "login";
+    r.value[action] = iaction;
     r.value[username] = s_usrname;
-    r.value[ac_id] = "1";
+    r.value[ac_id] = iac_id;
     r.value[ip] = ipAddr;
-    r.value[n] = "200";
-    r.value[type] = "1";
-    r.value[os] = "Windows 10";
-    r.value[name] = "Windows";
-    r.value[double_stack] = "0";
+    r.value[n] = in;
+    r.value[type] = itype;
+    r.value[os] = ios;
+    r.value[name] = iname;
+    r.value[double_stack] = idouble_stack;
     r.value[_] = timeStamp;
 
 

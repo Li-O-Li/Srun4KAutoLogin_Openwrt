@@ -96,6 +96,15 @@ opkg install getrandom
 V1.0 功能实现
 V1.1 心跳包实现
 
+V1.2 将行尾符从CRLF替换为LF，适应linux环境
+V1.3 修复issue #1:将请求体中的部分内容挪入sh脚本中，方便修改
+
+## QA
+
+### 1.为什么我不在BUAA，直接使用会连接不上？
+
+根据issue#1，可能原因为ac_id与学校默认认证不匹配，可通过查看学校的get_challenge网页/portal网页的响应值对应进行修改。
+
 ## To Do
 
-1.优化安装方式
+1.优化安装方式（打包为apk）
