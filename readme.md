@@ -36,7 +36,7 @@
 
 1. 根据运行设备型号，安装或自行编译openwrt SDK(网址:<https://downloads.openwrt.org/snapshots/targets/>)
 2. clone本项目到编译设备本地目录
-3. make(按照SDK环境不同，可能需要修改makefile中的CC变量)
+3. make(按照SDK环境不同，可能需要修改makefile中的CC变量;可能存在/bin或者/tests/bin文件夹不存在的报错，先使用mkdir创建对应目录即可)
 4. 在./bin文件夹下获取srunRequestBodyGeneration可执行文件
 **注**：已经存储于./bin文件夹中的可执行文件基于测试设备生成，仅可用于**Redmi AC2100+OpenWrt 23.05.0**，其它设备请自行生成。
 
