@@ -16,8 +16,8 @@ double_stack=0
 username=testuser                                       # user name
 passwordPlain=testpwd                                   # plain password
 executablePath="/srunTest/srunRequestBodyGeneration"    # path to srunRequestBodyGeneration
-challengeURL="http://10.200.21.4/cgi-bin/get_challenge" # BUAA Srun Certificate server URLs
-portalURL="http://10.200.21.4/cgi-bin/srun_portal"
+challengeURL="https://10.200.21.4/cgi-bin/get_challenge" # BUAA Srun Certificate server URLs
+portalURL="https://10.200.21.4/cgi-bin/srun_portal"
 
 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.33"
 callback=""
