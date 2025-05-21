@@ -44,11 +44,11 @@ getChallenge(){
     
     # step 2:generate post string
     local post_data="callback="$callback"&username="$username"&ip="$ip"&_="$timeMilli
-    # echo $URL"?"$post_data
 
     # step 3:send GET request to certificate server and parse response
-    local server_response=$(wget -qO- --no-check-certificate --user-agent=$(printf $user_agent) $URL"?"$post_data)
-    # echo $server_response
+    echo "requestURL=${URL}?${post_data}" >> /tmp/login.log
+    local server_response=$(curl --insecure --max-time 3 -s --user-agent "$user_agent" "${URL}?${post_data}")
+    echo "response=${server_response}"  >>/tmp/login.log
     local res=$(echo "$server_response" | grep -o '"res": *"[^"]*"' | sed 's/"res":"\([^"]*\)"/\1/')
     # echo $res
 
@@ -84,7 +84,7 @@ portalLogin(){
     # generate request body using extern C-language-based executable
     local requestBody=$($executablePath $callback $username $passwordPlain $ip $timeMilli $challenge $action $ac_id $n $type $os $name $double_stack)
     # send login request to server
-    local server_response=$(wget -qO- --no-check-certificate --user-agent=$(printf $user_agent) $URL"?"$requestBody)
+    local server_response=$(curl --insecure --max-time 3 -s --user-agent "$user_agent" "${URL}?${requestBody}")
     # analyze result
     local res=$(echo "$server_response" | grep -o '"suc_msg": *"[^"]*"' | sed 's/"suc_msg":"\([^"]*\)"/\1/')
     if [ "$res" == "login_ok" ]; then
@@ -105,7 +105,7 @@ checkConnectivity(){
     timeOutput=$(date "+%Y-%m-%d %H:%M:%S")
     # ipv6 connection DO NOT need certificate
     # ping baidu in only-ipv4 mode to check if connectivity is good
-    local checker=$(curl --max-time 3 -4 -s -I 220.181.38.149 --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.33" 2>&1 | grep "HTTP/" | awk '{print $2}')
+    local checker=$(curl --max-time 3 -4 -s -I 220.181.38.149 --user-agent "$user_agent" 2>&1 | grep "HTTP/" | awk '{print $2}')
     echo "check for connectivity shows:"$checker >> /tmp/login.log
     if [ "$checker" == "302" ]; then  # status code 302 - 'found', connectivity is good
         echo "online at"$timeOutput >> /tmp/login.log
@@ -113,7 +113,7 @@ checkConnectivity(){
             $(rm -f "/tmp/heartBeatPackage.tmp")
         fi
         sleep 5
-        local tmp=$(curl -s 220.181.38.149 -o "/tmp/heartBeatPackage.tmp" --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.33")
+        local tmp=$(curl -s 220.181.38.149 -o "/tmp/heartBeatPackage.tmp" --user-agent "$user_agent")
         sleep 295                     # if online, only check every 5 min
     else
         echo "User is offline, trying to reconnect at "$timeOutput >> /tmp/login.log
