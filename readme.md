@@ -99,9 +99,50 @@ chmod +x ./install.sh
 # (可选)清理GCC以腾出150+MB储存空间
 opkg uninstall gcc make
 ```
+- **手动部署方法**
 
+  适用于交叉编译后，无法使用install.sh脚本安装的情况。
 
-## 更新记录
+```shell
+# 假设现在在本地，当前文件夹内已经有名为srunRequestBodyGeneration的可执行文件以及github /shell文件夹下的两个shell文件
+# 目录结构像这样
+# - current_directory
+#   - srunRequestBodyGeneration
+#   - autoLogin.sh
+#   - srun_login
+scp ./* root@xxx.xxx.xxx.xxx:~/srun/  # 将本地文件上传到路由器~/srun/文件夹内，自行替换IP地址
+
+# 登陆路由器并切换文件夹
+ssh root@xxx.xxx.xxx.xxx
+cd ~/srun
+
+# 3.修改autoLogin.sh脚本
+EXECUTABLE_PATH="/usr/bin/srunRequestBodyGeneration"  # 安装可执行文件的路径
+SHELL_PATH="/usr/scripts/autoLogin.sh"				 # 安装登录shell脚本的路径
+vi ./autoLogin.sh
+# 着重修改username, passwordPlain, ipSchoolGateway, executablePath和logPath
+# 前三项含义项同本地部署
+# executablePath:同EXECUTABLE_PATH
+# logPath:登录日志文件的路径，建议放在/tmp以便重启清除，如/tmp/login.log
+
+# 4.修改srun_login开机启动脚本
+vi ./srun_login
+# 着重修改SCRIPT：与SHELL_PATH相同
+
+# 5.安装与授权
+cp ./srunRequestBodyGeneration $EXECUTABLE_PATH
+cp ./autoLogin.sh $SHELL_PATH
+cp ./srun_login /etc/init.d/srun_login
+chmod 755 $EXECUTABLE_PATH
+chmod 755 $SHELL_PATH
+chmod 755 /etc/init.d/srun_login
+
+# 6.运行
+/etc/init.d/srun_login start
+/etc/init.d/srun_login enable  # 开机启动
+```
+
+  更新记录
 
 V1.0 功能实现
 V1.1 心跳包实现
