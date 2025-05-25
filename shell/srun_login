@@ -1,0 +1,41 @@
+#!/bin/sh /etc/rc.common
+
+START = 99
+STOP = 10
+
+SCRIPT="/root/scripts/autoLogin.sh"  # Path to the autoLogin script
+PIDFILE="/var/run/srun_login.pid"
+
+start() {
+    echo "Starting autoLogin..."
+    if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+        echo "autoLogin is already running."
+        return 1
+    fi
+
+    if [ -x "$SCRIPT" ]; then
+        nohup "$SCRIPT" > /dev/null 2>&1 &
+        echo $! > "$PIDFILE"
+        echo "Started with PID $(cat "$PIDFILE")"
+        echo "Start logging in /tmp/login.log"
+    else
+        echo "Script $SCRIPT not found or not executable"
+        return 1
+    fi
+}
+
+stop() {
+    echo "Stopping autoLogin..."
+    if [ -f "$PIDFILE" ]; then
+        PID=$(cat "$PIDFILE")
+        if kill "$PID" 2>/dev/null; then
+            rm -f "$PIDFILE"
+            echo "Stopped."
+        else
+            echo "Process not running, cleaning up PID file."
+            rm -f "$PIDFILE"
+        fi
+    else
+        echo "PID file not found."
+    fi
+}
