@@ -16,13 +16,14 @@ double_stack=0
 username=testuser                                       # user name
 passwordPlain=testpwd                                   # plain password
 ipSchoolGateway="10.200.21.4"                          # BUAA gateway ip
-executablePath="/srunTest/srunRequestBodyGeneration"    # path to srunRequestBodyGeneration
+executablePath="[EXECUTABLE_PATH]"                     # path to srunRequestBodyGeneration
 challengeURL="https://${ipSchoolGateway}/cgi-bin/get_challenge" # Certificate server URLs
 portalURL="https://${ipSchoolGateway}/cgi-bin/srun_portal"
 
 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.33"
 callback=""
 challenge=""
+logPath="[LOG_PATH]"                                    # log path, can be fulfilled by install.sh
 
 # STEP1: get challenge
 getChallenge(){
@@ -47,21 +48,21 @@ getChallenge(){
     local post_data="callback="$callback"&username="$username"&ip="$ip"&_="$timeMilli
 
     # step 3:send GET request to certificate server and parse response
-    echo "requestURL=${URL}?${post_data}" >> /tmp/login.log
+    echo "requestURL=${URL}?${post_data}" >> $logPath
     local server_response=$(curl --insecure --max-time 3 -s --user-agent "$user_agent" "${URL}?${post_data}")
-    echo "response=${server_response}"  >>/tmp/login.log
+    echo "response=${server_response}"  >>$logPath
     local res=$(echo "$server_response" | grep -o '"res": *"[^"]*"' | sed 's/"res":"\([^"]*\)"/\1/')
     # echo $res
 
     # step 4:check result
     if [ "$res" == "ok" ]; then
         challenge=$(echo "$server_response" | grep -o '"challenge": *"[^"]*"' | sed 's/"challenge":"\([^"]*\)"/\1/')
-        # echo "challenge fetched!"$challenge >>/tmp/login.log
+        # echo "challenge fetched!"$challenge >>$logPath
         return 0    
     else
-        echo "challenge fetch FAILED.challenge="$challenge >>/tmp/login.log
-        echo "corresponding header="$post_data >>/tmp/login.log
-        echo "response="$server_response >>/tmp/login.log
+        echo "challenge fetch FAILED.challenge="$challenge >>$logPath
+        echo "corresponding header="$post_data >>$logPath
+        echo "response="$server_response >>$logPath
         challenge=""
         return 1
     fi
@@ -74,9 +75,9 @@ portalLogin(){
     local URL=$portalURL
     getChallenge
     if [ $challenge != "" ]; then
-	    echo "valid token. "$challenge >>/tmp/login.log
+	    echo "valid token. "$challenge >>$logPath
     else
-	    echo "invalid token" >>/tmp/login.log
+	    echo "invalid token" >>$logPath
 	    return 2
     fi
 
@@ -89,12 +90,12 @@ portalLogin(){
     # analyze result
     local res=$(echo "$server_response" | grep -o '"suc_msg": *"[^"]*"' | sed 's/"suc_msg":"\([^"]*\)"/\1/')
     if [ "$res" == "login_ok" ]; then
-        echo "successfully login at "$timeOutput >>/tmp/login.log
+        echo "successfully login at "$timeOutput >>$logPath
         return 0
     else
-        echo "login failed at "$timeOutput >>/tmp/login.log
-        echo "result shows "$res >>/tmp/login.log
-        echo "requestBody="$requestBody >>/tmp/login.log
+        echo "login failed at "$timeOutput >>$logPath
+        echo "result shows "$res >>$logPath
+        echo "requestBody="$requestBody >>$logPath
         return 3
     fi
 }
@@ -107,9 +108,9 @@ checkConnectivity(){
     # ipv6 connection DO NOT need certificate
     # ping baidu in only-ipv4 mode to check if connectivity is good
     local checker=$(curl --max-time 3 -4 -s -I 220.181.38.149 --user-agent "$user_agent" 2>&1 | grep "HTTP/" | awk '{print $2}')
-    echo "check for connectivity shows:"$checker >> /tmp/login.log
+    echo "check for connectivity shows:"$checker >> $logPath
     if [ "$checker" == "302" ]; then  # status code 302 - 'found', connectivity is good
-        echo "online at"$timeOutput >> /tmp/login.log
+        echo "online at"$timeOutput >> $logPath
         if [ -e "/tmp/heartBeatPackage.tmp" ]; then
             $(rm -f "/tmp/heartBeatPackage.tmp")
         fi
@@ -117,7 +118,7 @@ checkConnectivity(){
         local tmp=$(curl -s 220.181.38.149 -o "/tmp/heartBeatPackage.tmp" --user-agent "$user_agent")
         sleep 295                     # if online, only check every 5 min
     else
-        echo "User is offline, trying to reconnect at "$timeOutput >> /tmp/login.log
+        echo "User is offline, trying to reconnect at "$timeOutput >> $logPath
         portalLogin
     fi
     # 5~30s retry interval between retries

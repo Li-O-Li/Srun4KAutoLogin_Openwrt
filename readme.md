@@ -8,88 +8,98 @@
 
 ## 环境需求
 
-1. **编译环境**
-任意可运行**openwrt SDK**的设备（后文简称编译设备）。在WSL Ubuntu 22.04.3 LTS系统测试通过。
-2. **运行环境**
-运行脚本进行自动上网的设备（后文简称运行设备）。在以下设备测试通过。
+1. **运行环境**
+    安装有Openwrt系统的路由器。在以下设备测试通过。
 
 条目 | 数值
 -----|-----
- 型号 | 红米AC2100
- 处理器 | MT7621
- 固件版本 | OpenWrt 23.05.0-rc3/LuCI openwrt-23.05
- 内核版本 | 5.15.127
+ 架构 | x86/64                            
+ 处理器 | Intel N100 
+ 固件版本 | OpenWrt 24.10.1 r28597-0425664679 
+ 内核版本 | 6.6.86 
 
 ## 程序特点
 
-1. **轻量化**。使用C语言生成请求体，wget命令向服务器发送GET请求。程序与依赖库占用运行设备空间小于1MB，适用于路由器等存储空间有限的场合。
+1. **轻量化**。使用C语言生成请求体，curl命令向服务器发送GET请求。程序与依赖库占用运行设备空间小于1M，适用于路由器等存储空间有限的场合。
 2. **掉线自动重连**。每5分钟+(5-25随机秒数)检测一次在线状态，不在线则重新登陆。登陆失败时会间隔(5-25随机秒数)自动重试。
 
-## 使用方式
+## 部署方式
 
-1. 在编译设备编译srunRequestBodyGeneration可执行文件
-2. 将其与autoLogin.sh文件一同上传到运行设备
-3. 配置必要参数与环境
-4. 配置开机自动启动项
+可以选择Openwrt本地编译方式或交叉编译方式部署。
 
-### 1.编译可执行文件
+- **本地编译：**需在Openwrt上安装GCC以编译可执行文件，过程需要~180MB可用空间（编译完成后可以卸载GCC释放）；
 
-1. 根据运行设备型号，安装或自行编译openwrt SDK(网址:<https://downloads.openwrt.org/snapshots/targets/>)
-2. clone本项目到编译设备本地目录
-3. make(按照SDK环境不同，可能需要修改makefile中的CC变量;可能存在/bin或者/tests/bin文件夹不存在的报错，先使用mkdir创建对应目录即可)
-4. 在./bin文件夹下获取srunRequestBodyGeneration可执行文件
-**注**：已经存储于./bin文件夹中的可执行文件基于测试设备生成，仅可用于**Redmi AC2100+OpenWrt 23.05.0**，其它设备请自行生成。
+- **交叉编译：**须在外部设备上编译能在Openwrt上运行的可执行文件，再将文件拷贝到路由器上，仅要求路由器具有存放程序与依赖的空间即可。
 
-### 2.上传
+  出于省事，这里只说本地编译的方案。外部设备搭建交叉编译环境可以参考：[[OpenWrt Wiki\] 使用SDK](https://openwrt.org/zh/docs/guide-developer/using_the_sdk)
 
-将可执行文件与./shell/autoLogin.sh上传到运行设备。
-参考代码：
+  |                    | Openwrt本地编译                   | 交叉编译  |
+  | ------------------ | --------------------------------- | --------- |
+  | 部署难度           | 简单                              | 复杂      |
+  | 目标路由器空间需求 | 大（过程需要180MB，完成后可释放） | 小（<1M） |
 
-```Shell
-sudo scp ./bin/srunRequestBodyGeneration root@192.168.1.1:$DEST_FOLDER/srunRequestBodyGeneration
-sudo scp ./shell/autoLogin.sh root@192.168.1.1:$DEST_FOLDER/autoLogin.sh
-```
+- **本地编译部署方法**
 
-### 3.配置必要参数与环境
+  1. **登录后台：**使用SSH连接到路由器后台
+  2. **安装依赖：**通过opkg；
+  3. **克隆项目：**从github克隆项目（或直接下载zip包解压，也是一样的）；
+  4. **修改编译配置：**修改makefile文件；
+  5. **编译**
+  6. **配置登录脚本**
+  7. **安装**
+  8. **运行**
+```shell
+# Openwrt本地编译流程
+# 1.选择在路由器上编译，所以登录后台操作
+ssh root@xxx.xxx.xxx.xxx;  # 登录路由器后台
 
-#### 修改./shell/autoLogin.sh文件
-
-`sudo vi $DEST_FOLDER/autoLogin.sh`
-
-```Shell
-username=testuser                                       # user name
-passwordPlain=testpwd                                   # plain password
-executablePath="/srunTest/srunRequestBodyGeneration"    # path to srunRequestBodyGeneration
-challengeURL="http://10.200.21.4/cgi-bin/get_challenge" # BUAA Srun Certificate server URLs
-portalURL="http://10.200.21.4/cgi-bin/srun_portal"
-```
-
-username - 校园网认证用户名
-
-passwordPlain - 明文密码
-
-executablePath - 指向请求体生成可执行文件的路径
-
-challengeURL,portalURL - 不同学校的URL不同，可参考加密逻辑参考网页中的做法设置
-
-#### 安装依赖包
-
-本程序依赖coreutils-date、curl、ubus、getrandom库运行
-
-```Shell
+# 2.安装依赖
 opkg update
-opkg install coreutils-date
-opkg install ubus
-opkg install curl
-opkg install getrandom
+opkg install git git-http # 克隆项目用，如果直接上传zip包可以忽略
+opkg install make gcc  # 本地编译用
+opkg install coreutils-date ubus curl getrandom coreutils-nohup # 运行依赖，必装
+
+# 3.克隆项目
+cd /tmp  # 随便找个目录放项目文件，这里选择/tmp，重启后直接清空，很方便;内存小的机器可能得找其它地方放
+git clone https://github.com/Li-O-Li/Srun4KAutoLogin_Openwrt.git
+cd Srun4KAutoLogin_Openwrt/
+
+# 4.修改编译配置
+vi makefile
+# 主要修改CC、CFLAGS变量
+# CC:编译命令名称（我这里使用路由器本地GCC，故CC=gcc；交叉编译可能改为mipsel-openwrt-linux-gcc的名字
+# CFLAGS:编译选项（前面的-I不要动；默认开O2优化，可改为-OSize以进行占用空间优化）
+# 修改完成后保存退出
+
+# 5.编译
+make clean  # 清除现有编译文件
+make  # 进行编译
+# 结果在bin文件夹下
+
+# 6.配置登录脚本
+vi ./shell/autoLogin.sh
+# 着重修改username、passwordPlain为校园网账户名与密码
+# 按需修改ipSchoolGateway为校园网登录界面的IP，可以使用nslookup [域名]的指令查询
+# executablePath和logPath在安装时自动填写，无需手动干预
+
+# 7.安装
+vi ./install.sh  # 按需修改安装路径
+# SRUN_INSTALL_BIN_FOLDER : URI生成程序安装文件夹
+# SRUN_INSTALL_BIN_NAME : URI生成程序文件名
+# SRUN_INSTALL_SHELL_FOLDER : 登录脚本安装文件夹
+# SRUN_INSTALL_SHELL_NAME : 登录脚本文件名
+# SRUN_LOG_PATH : 登录日志文件位置
+chmod +x ./install.sh
+./install.sh
+
+# 8.运行
+/etc/init.d/srun_login start
+/etc/init.d/srun_login enable  # 开机启动
+
+# (可选)清理GCC以腾出150+MB储存空间
+opkg uninstall gcc make
 ```
 
-### 4.配置开机自动启动项
-
-修改开机自启动条目文件
-`vi /etc/rc.local`
-添加新行
-`/srunTest/autoLogin.sh &`
 
 ## 更新记录
 
@@ -98,6 +108,8 @@ V1.1 心跳包实现
 
 V1.2 将行尾符从CRLF替换为LF，适应linux环境
 V1.3 修复issue #1:将请求体中的部分内容挪入sh脚本中，方便修改
+
+V1.4 添加install.sh脚本
 
 ## QA
 
