@@ -2,9 +2,9 @@
 
 ## 简介
 
-适用于深澜4K认证系统的openwrt设备自动登录程序，基于shell和C语言。北航校园网环境测试通过。
+适用于深澜4K webPortal系统的openwrt设备自动登录程序，基于shell和C语言。北航校园网环境测试通过。
 
-加密逻辑参考：<https://blog.csdn.net/hackermengzhi/article/details/130499424>
+深澜4K webPortal的界面样式以及加密逻辑参考文献：<https://blog.csdn.net/hackermengzhi/article/details/130499424>
 
 ## 环境需求
 
